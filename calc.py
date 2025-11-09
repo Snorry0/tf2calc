@@ -1,3 +1,11 @@
+import requests
+def api_prezzo():
+    url = 'https://backpack.tf/api/IGetPrices/v1?key=TUO_API_KEY'  # Inserisci la tua API key qui
+    response = requests.get(url)
+    data = response.json()
+    key_price = data['response']['currencies']['keys']['price']['value']
+
+    return key_price
 
 def scomponi_refined(totale_refined):
     # Estrai refined (parte intera)

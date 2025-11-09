@@ -1,0 +1,15 @@
+from calc import scomponi_refined, calcola_refined
+
+def test_scomponi_refined():
+    assert scomponi_refined(4.22) == (4, 0, 2)
+    assert scomponi_refined(5.55) == (5, 1, 2)
+    assert scomponi_refined(0) == (0, 0, 0)
+
+def test_calcola_refined():
+    r, rec, s = calcola_refined(4, 3, 10)  # 3 reclaimed + 10 scrap devono normalizzarsi
+    # 3 reclaimed = 1 refined + 0 reclaimed
+    # 10 scrap = 3 reclaimed + 1 scrap (9 scrap = 3 reclaimed)
+    # Totale: refined: 4 + 1 + 1 = 6, reclaimed: 0 + 1 = 1, scrap: 1
+    assert r == 6
+    assert rec == 1
+    assert s == 1

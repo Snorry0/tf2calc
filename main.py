@@ -1,7 +1,11 @@
+import os
 import requests
 from calc import scomponi_refined, calcola_refined
 def api_prezzo():
-    url = 'https://backpack.tf/api/IGetPrices/v1?key=TUO_API_KEY'  # Inserisci la tua API key qui
+    api_key = os.getenv('BF_TOK_API_KEY')
+    if not api_key:
+        raise RuntimeError("Inserisci l'api key nell'env!")
+    url = 'https://backpack.tf/api/IGetPrices/v4?key' 
     response = requests.get(url)
     data = response.json()
     key_price = data['response']['currencies']['keys']['price']['value']
@@ -12,41 +16,42 @@ def api_prezzo():
 
 def esegui_operando_generics(expr):
     expr = expr.replace(' ', '')
+    # trovo l'operatore: prendo il primo tra + - * /
     for op in ['+','-','*','/']:
         if op in expr:
-            oper1, oper2 = expr.split(op) #con questa funzione andiamo a separare gli operandi, e il termine di separazione è l'operazione
-            oper1 = float(oper1) #l'espressione la considera come totalmente string, devo riconvertirla in float
-            oper2 = float(oper2)
-            operando = op
+            oper1_str, oper2_str = expr.split(op, 1)  # split una sola volta
+            # controllo che i due pezzi non siano vuoti
+            if not oper1_str or not oper2_str:
+                raise Exception("Uno dei due operandi è vuoto!")
+            # converto in float (refined)
+            oper1 = float(oper1_str)
+            oper2 = float(oper2_str)
             break
     else:
-        raise Exception("Operatore non trovato nella stringa");
+        raise Exception("Operatore non trovato nella stringa (usa + - * /)")
         
+    #scompongo le due unità in pezzi singoli in ref/rec/scrap, sia per debug che per utilità
     ref1, rec1, scrap1 = scomponi_refined(oper1)
     ref2, rec2, scrap2 = scomponi_refined(oper2)
     print(f"Refined: {ref1, ref2}")
     print(f"Reclaimed: {rec1, rec2}")
     print(f"Scrap: {scrap1, scrap2}")
 
-    totale1 = ref1 + rec1 * 0.33 + scrap1 * 0.11
-    totale2 = ref2 + rec2 * 0.33 + scrap2 * 0.11
 
-    #checko le operazioni
+    # operazioni: + e - tra due importi; * e / trattano il secondo come SCALARE (utile nel trading)
     if op == '+':
-        ris = totale1 + totale2
+        r = oper1 + oper2
     elif op == '-':
-        if(totale1 < totale2):
-            ris = totale2 - totale1
-        else: ris = totale1 - totale2 
+        r = abs(oper1 - oper2)
     elif op == '*':
-        ris = totale1 * totale2
+        r = oper1 * oper2
     elif op == '/':
-        if totale2 > 0:
-            ris = totale1 + totale2
-        else:
-            raise Exception("Divisione con 0 e minore non permessa!")
+        if oper2 == 0:
+            raise Exception("Divisione per 0 non permessa!")
+        r = oper1 / oper2
+
     
-    risRef, risRec, risScrap = scomponi_refined(ris)
+    risRef, risRec, risScrap = scomponi_refined(r)
     risRef, risRec, risScrap = calcola_refined(risRef, risRec, risScrap)
 
     return risRef, risRec, risScrap
@@ -54,7 +59,7 @@ def esegui_operando_generics(expr):
 expr = input("Inserisci l'espressione in refined (es 3.33 + 2.66): ")
 ref, rec, scrap = esegui_operando_generics(expr)
 tot = ref+rec+scrap
-print("Risultato:", tot)
+print(f"Risultato: {tot} ref") #f -> possiamo fare questo print
 
 #totale = float(input("Inserisci il secondo valore in refined: "))
 

@@ -1,5 +1,5 @@
 def scomponi_refined(totale_refined):
-    # Estrai refined (parte intera)
+    # Estraggo refined, reclaimed e scrap separatamente
     refined = int(totale_refined)
     restante = totale_refined - refined
     reclaimed = int(restante // 0.33)

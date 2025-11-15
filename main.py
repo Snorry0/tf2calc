@@ -2,30 +2,17 @@ import os
 import requests
 from calc import scomponi_refined, calcola_refined
 def api_prezzo():
-    api_key = (os.getenv('BPTF_API_KEY')
-               or os.getenv('BP_TF_API_KEY')
-               or os.getenv('BF_TOK_API_KEY'))
+    api_key = (os.getenv('BPTF_API_KEY'))
     if not api_key:
         raise RuntimeError("Inserisci l'api key nell'env!")
-    url = 'https://backpack.tf/api/IGetCurrencies/v1' 
+    
+    url = 'https://backpack.tf/api/IGetCurrencies/v1'
     # chiamo l'API (timeout per non rimanere appeso all'infinito, 10 secondi vanno bene per la lentezza dell'API stesso)
-    #r = requests.get(url, params=params, timeout=10)
+    r = requests.get(url, params={'key': api_key}, timeout=10)
     # se 429 (rate limit, molto probabile perchè l'api è molto lento da quando tf2 ha introdotto tante varianti di unusual e skin), 
     # backpack.tf manda Retry-After: per ora mi limito a farlo fallire pulito
-   # r.raise_for_status()
-    #data = r.json()
-    # voglio: response -> currencies -> keys -> price -> value (refined per 1 key)
-    #try:
-    #    key_price_ref = float(data["response"]["currencies"]["keys"]["price"]["value"])
-    #except (KeyError, TypeError, ValueError):
-    #    raise RuntimeError("Struttura risposta API cambiata o key invalida. Controlla la tua API key o la doc BP.tf")
-
-    #if key_price_ref <= 0:
-    #    raise RuntimeError("Prezzo key non valido dalla API (<=0).")
-    r = requests.get(url, params={'key': api_key}, timeout=10)
     r.raise_for_status()
     data = r.json()
-
     # path standard (se 'response' non c'è, provo al top-level)
     try:
         return float(data['response']['currencies']['keys']['price']['value'])
@@ -37,7 +24,7 @@ def api_prezzo():
 def printf_parse_operand_tf2(operand_str, key_price_ref):
     # "alla meccanico": se finisce con 'k' stampo la conversione, ma NON la uso nei calcoli
     s = operand_str.strip().lower()
-    if s.endswith('k'):
+    if s.endswith('key'):
         num = s[:-1] or "1"   # "k" da solo = 1k
         try:
             qty = float(num)
